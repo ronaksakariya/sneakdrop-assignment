@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: sneakdrop-db
+    environment:
+      POSTGRES_USER: ronak
+      POSTGRES_PASSWORD: ronak_password
+      POSTGRES_DB: sneaker_drop
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ronak -d sneaker_drop"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

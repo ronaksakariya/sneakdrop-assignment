@@ -51,3 +51,23 @@ CREATE TABLE payment_events (
     payload JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX one_active_hold_per_user
+ON holds (user_id)
+WHERE status = 'ACTIVE';
+
+CREATE UNIQUE INDEX one_active_hold_per_unit
+ON holds (unit_id)
+WHERE status = 'ACTIVE';
+
+CREATE UNIQUE INDEX one_pending_payment_per_hold
+ON payments (hold_id)
+WHERE status = 'PENDING';
+
+CREATE INDEX active_holds_expiry_idx
+ON holds (expires_at)
+WHERE status = 'ACTIVE';
+
+CREATE INDEX waitlist_fifo_idx
+ON waitlist (created_at, id)
+WHERE status = 'WAITING';

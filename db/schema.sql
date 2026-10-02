@@ -71,3 +71,10 @@ WHERE status = 'ACTIVE';
 CREATE INDEX waitlist_fifo_idx
 ON waitlist (created_at, id)
 WHERE status = 'WAITING';
+
+CREATE UNIQUE INDEX one_waiting_entry_per_user
+ON waitlist (user_id)
+WHERE status = 'WAITING';
+
+CREATE UNIQUE INDEX one_payment_record_per_hold
+ON payments (hold_id);

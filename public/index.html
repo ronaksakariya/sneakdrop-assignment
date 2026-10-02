@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sneaker Drop</title>
+  </head>
+  <body>
+    <h1>Sneaker Drop</h1>
+
+    <label>
+      User ID:
+      <input id="userId" value="user-1" />
+    </label>
+
+    <button id="buyButton">Buy</button>
+
+    <br /><br />
+
+    <label>
+      Payment scenario:
+      <select id="scenario">
+        <option value="success">success</option>
+        <option value="fail">fail</option>
+        <option value="duplicate">duplicate</option>
+        <option value="out_of_order">out_of_order</option>
+        <option value="late">late</option>
+        <option value="random">random</option>
+      </select>
+    </label>
+
+    <button id="payButton">Pay</button>
+
+    <pre id="status">Loading...</pre>
+
+    <script>
+      const userIdInput = document.getElementById("userId");
+
+      const scenarioInput = document.getElementById("scenario");
+
+      const statusElement = document.getElementById("status");
+
+      async function refreshStatus() {
+        const userId = userIdInput.value.trim();
+
+        if (!userId) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/status?userId=${encodeURIComponent(userId)}`,
+          );
+
+          const data = await response.json();
+
+          statusElement.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          statusElement.textContent = "Status request failed";
+        }
+      }
+
+      document
+        .getElementById("buyButton")
+        .addEventListener("click", async () => {
+          const response = await fetch("/api/buy", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: userIdInput.value.trim(),
+            }),
+          });
+
+          statusElement.textContent = JSON.stringify(
+            await response.json(),
+            null,
+            2,
+          );
+
+          await refreshStatus();
+        });
+
+      document
+        .getElementById("payButton")
+        .addEventListener("click", async () => {
+          const response = await fetch("/api/pay", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: userIdInput.value.trim(),
+              scenario: scenarioInput.value,
+            }),
+          });
+
+          statusElement.textContent = JSON.stringify(
+            await response.json(),
+            null,
+            2,
+          );
+        });
+
+      refreshStatus();
+      setInterval(refreshStatus, 1000);
+    </script>
+  </body>
+</html>

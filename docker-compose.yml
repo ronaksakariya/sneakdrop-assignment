@@ -17,5 +17,41 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sneakdrop-app
+    depends_on:
+      db:
+        condition: service_healthy
+      mock-payments:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://ronak:ronak_password@db:5432/sneaker_drop
+      TOTAL_UNITS: 20
+      HOLD_TTL_SECONDS: 300
+      MAX_PER_USER: 2
+      MAX_PAYMENT_ATTEMPTS: 3
+      WEBHOOK_SECRET: development-secret
+      MOCK_PROVIDER_URL: http://mock-payments:4000
+      PAYMENT_WEBHOOK_URL: http://app:3000/api/webhooks/payment
+    ports:
+      - "3000:3000"
+
+  mock-payments:
+    build:
+      context: .
+      dockerfile: mock-payments/Dockerfile
+    container_name: sneakdrop-mock-payments
+    environment:
+      MOCK_PORT: 4000
+      WEBHOOK_SECRET: development-secret
+      LATE_DELAY_MS: 310000
+    ports:
+      - "4000:4000"
+
 volumes:
   postgres_data:

@@ -1,15 +1,23 @@
-import express from "express";
+import { app } from "./app.js";
+import { config } from "./config.js";
+import { pool } from "./db.js";
+import { startExpiryWorker } from "./workers/expiryWorker.js";
 
-const app = express();
-
-app.use(express.json());
-
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+const server = app.listen(config.port, () => {
+  console.log(`Server running on port ${config.port}`);
 });
 
-const PORT = process.env.PORT || 3000;
+const expiryWorker = startExpiryWorker();
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+function shutdown() {
+  clearInterval(expiryWorker);
+
+  server.close(() => {
+    void pool.end().finally(() => {
+      process.exit(0);
+    });
+  });
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
